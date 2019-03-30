@@ -4,49 +4,59 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Storage;
+use File;
 
 class ProductController extends Controller
 {
+    protected $path = 'storage/app/public/products.json';
+
     public function index() {
-        $products = file_get_contents(base_path('storage/app/public/products/products.js'));
-        $products = json_decode($products, true);
+        $products = [];
 
-        //$products = str_replace('"', '', $products);
-        //$products = array($products);
+        if ( File::exists(base_path($this->path))) {
+            $products = File::get(base_path($this->path));
+            $products = json_decode($products, true);
+        }
 
-        dd($products);
-        //$products = [];
         return view('index', compact('products'));
     }
 
     public function add() {
 
-        $name = request('name');
-        $quantity = request('quantity');
-        $price = request('price');
+        $name = trim(strip_tags(request('name')));
+        $quantity = abs(request('quantity'));
+        $price = abs(request('price'));
 
-        $data = [
-            'name' => $name,
-            'quantity' => $quantity,
-            'price' => $price,
-            'datetime' => date('m/d/Y H:m:s'),
-            'total' => $quantity * $price
-        ];
+        if (!empty($name) && !empty($quantity) && !empty($price)) {
 
-        $data = json_encode($data);
+            $data = [
+                'name' => $name,
+                'quantity' => $quantity,
+                'price' => $price,
+                'datetime' => date('m/d/Y H:m:s'),
+                'total' => number_format($quantity * $price, 2)
+            ];
 
-        
-
-        file_put_contents(base_path('storage/app/public/products/products.js'), $data,  FILE_APPEND);
-
-        $products = file_get_contents(base_path('storage/app/public/products/products.js'));
-
-        
-
+            if ( File::exists(base_path($this->path))) {
+                $products = File::get(base_path($this->path));
+                $products = json_decode($products);
+            } else {
+                $products = [];
+            }
+    
+            array_push($products, $data);
+    
+            $products = json_encode($products, JSON_PRETTY_PRINT);
+    
+            File::put(base_path($this->path), $products);
+    
+            return response()->json([
+                'result' => $products
+            ]);
+        }
 
         return response()->json([
-            'result' => $products
-           
+            'result' => 'Error'
         ]);
     }
 }

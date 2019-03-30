@@ -1790,6 +1790,9 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   props: {
     route: {
@@ -1801,21 +1804,48 @@ __webpack_require__.r(__webpack_exports__);
     return {
       name: '',
       quantity: 0,
-      price: 0
+      price: 0,
+      quantityError: '',
+      priceError: ''
     };
   },
   methods: {
     formSubmit: function formSubmit() {
-      axios.post(this.route, {
-        name: this.name,
-        quantity: this.quantity,
-        price: this.price
-      }).then(function (response) {
-        if (response) {
-          console.log(response);
-        }
-      }).catch(function (error) {// console.log(error);
-      });
+      var _this = this;
+
+      this.quantityError = '';
+      this.priceError = '';
+
+      if (this.quantity <= 0) {
+        this.quantityError = 'Quantity must be more then 0';
+      }
+
+      if (this.price <= 0) {
+        this.priceError = 'Price must be more then 0';
+      }
+
+      if (this.name && this.quantity && this.price) {
+        axios.post(this.route, {
+          name: this.name,
+          quantity: this.quantity,
+          price: this.price
+        }).then(function (response) {
+          if (response.data.result) {
+            var products = response.data.result;
+            products = JSON.parse(products);
+            var output = '';
+            products.forEach(function (product) {
+              output += "\n                                <div class=\"card shadow mb-4\">\n                                    <h4 class=\"card-header\">Product:".concat(product.name, "</h4>\n                                    <div class=\"card-body\">\n                                        <div>Quantity: ").concat(product.quantity, "</div>\n                                        <div>Price: ").concat(product.price, "</div>\n                                        <div>Total: ").concat(product.total, "</div>\n                                        <div>Date: ").concat(product.datetime, "</div>\n                                    </div>\n                                </div>\n                            ");
+            });
+            var productsDiv = _this.$parent.$refs.products;
+            productsDiv.innerHTML = output;
+            _this.name = '';
+            _this.quantity = '';
+            _this.price = '';
+          }
+        }).catch(function (error) {// console.log(error);
+        });
+      }
     }
   }
 });
@@ -36865,8 +36895,10 @@ var render = function() {
   var _h = _vm.$createElement
   var _c = _vm._self._c || _h
   return _c("div", { staticClass: "container" }, [
-    _c("div", { staticClass: "row justify-content-center" }, [
-      _c("div", { staticClass: "col-md-8" }, [
+    _c("div", { staticClass: "row" }, [
+      _c("div", { staticClass: "col-md-6" }, [
+        _c("h3", { staticClass: "mb-4" }, [_vm._v("Create product")]),
+        _vm._v(" "),
         _c(
           "form",
           {
@@ -36891,7 +36923,7 @@ var render = function() {
                   }
                 ],
                 staticClass: "form-control",
-                attrs: { type: "text", id: "name" },
+                attrs: { type: "text", id: "name", required: "" },
                 domProps: { value: _vm.name },
                 on: {
                   input: function($event) {
@@ -36917,7 +36949,7 @@ var render = function() {
                   }
                 ],
                 staticClass: "form-control",
-                attrs: { type: "text", id: "quantity" },
+                attrs: { type: "text", id: "quantity", required: "" },
                 domProps: { value: _vm.quantity },
                 on: {
                   input: function($event) {
@@ -36927,7 +36959,11 @@ var render = function() {
                     _vm.quantity = $event.target.value
                   }
                 }
-              })
+              }),
+              _vm._v(" "),
+              _c("small", { staticClass: "text-danger" }, [
+                _vm._v(_vm._s(_vm.quantityError))
+              ])
             ]),
             _vm._v(" "),
             _c("div", { staticClass: "form-group" }, [
@@ -36943,7 +36979,7 @@ var render = function() {
                   }
                 ],
                 staticClass: "form-control",
-                attrs: { type: "text", id: "price" },
+                attrs: { type: "text", id: "price", required: "" },
                 domProps: { value: _vm.price },
                 on: {
                   input: function($event) {
@@ -36953,7 +36989,11 @@ var render = function() {
                     _vm.price = $event.target.value
                   }
                 }
-              })
+              }),
+              _vm._v(" "),
+              _c("small", { staticClass: "text-danger" }, [
+                _vm._v(_vm._s(_vm.priceError))
+              ])
             ]),
             _vm._v(" "),
             _c(
