@@ -33,7 +33,7 @@ class ProductController extends Controller
                 'name' => $name,
                 'quantity' => $quantity,
                 'price' => $price,
-                'datetime' => date('m/d/Y H:m:s'),
+                'datetime' => date('m/d/Y H:i:s'),
                 'total' => number_format($quantity * $price, 2)
             ];
 
